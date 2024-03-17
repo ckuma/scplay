@@ -3,7 +3,6 @@ import glob
 import dateutil.parser
 import re
 from datetime import timedelta
-import fire
 
 # Get filelist sorted by date
 def get_files(search_dir):
@@ -25,9 +24,10 @@ def convert_to_datetime(s):
 
 def get_totals(path=r'C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\logbackups'):
     total_deltas = timedelta()
+    log_output = ""  # Initialize an empty string to collect log output
     # For each file, extract first and last timestamp and calculate the delta
     for file in get_files(path):
-        print("Opening logfile: " + file)
+        log_output += "Opening logfile: " + file + "\n"
         with open(file, 'r', encoding='utf-8') as f:
             text_content = f.read().split("\n")
         dates = extract_dates(text_content)
@@ -36,12 +36,15 @@ def get_totals(path=r'C:\Program Files\Roberts Space Industries\StarCitizen\LIVE
             end_log = convert_to_datetime(dates[-1])
             delta = end_log - start_log
             total_deltas += delta
-            print("\tCalculated delta of ",delta)
-    return total_deltas
+            log_output += "\tCalculated delta of " + str(delta) + "\n"
+    return total_deltas, log_output
 
 def just_do_it(path=r'C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\logbackups'):
-    totals = get_totals(path)
-    print("\nYou've played a total of: ", totals)
+    totals, log_output = get_totals(path)
+    log_output += "\nYou've played a total of: " + str(totals) + "\n"
+    return log_output, totals
 
 if __name__ == '__main__':
-    fire.Fire(just_do_it)
+    # For testing purposes, you can call just_do_it() directly
+    log, total_time = just_do_it()
+    print(log)
