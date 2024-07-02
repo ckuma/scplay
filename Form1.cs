@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace StarCitizenPlaytimeCalculator
@@ -9,6 +10,7 @@ namespace StarCitizenPlaytimeCalculator
     public partial class Form1 : Form
     {
         private const string DefaultPath = @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\logbackups";
+        private TimeSpan totalPlayTime = TimeSpan.Zero;
 
         public Form1()
         {
@@ -18,29 +20,37 @@ namespace StarCitizenPlaytimeCalculator
             {
                 txtFolderPath.Text = DefaultPath;
             }
+            comboBoxFormat.SelectedIndex = 0; // Default to "Default" format
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
         {
-            using (FolderBrowserDialog folderDialog = new FolderBrowserDialog())
+            using (var folderDialog = new FolderBrowserDialog())
             {
-                folderDialog.Description = "Browse for logbackups folder (in your LIVE folder)\nDefault (if exists):\nC:\\Program Files\\Roberts Space Industries\\StarCitizen\\LIVE\\logbackups";
+                folderDialog.Description = "Browse for logbackups folder";
                 folderDialog.SelectedPath = DefaultPath;
+
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
                     txtFolderPath.Text = folderDialog.SelectedPath;
                 }
+                else
+                {
+                    if (Directory.Exists(folderDialog.SelectedPath))
+                    {
+                        FolderBrowserDialogHelper.ScrollToPath(folderDialog);
+                    }
+                }
             }
         }
-
 
         private void btnProcessLogs_Click(object sender, EventArgs e)
         {
             if (Directory.Exists(txtFolderPath.Text))
             {
                 txtOutput.Clear();
-                TimeSpan totalPlayTime = CalculateTotalPlayTime(txtFolderPath.Text);
-                txtTotalPlayTime.Text = $"Total Playtime: {FormatPlayTime(totalPlayTime)}";
+                totalPlayTime = CalculateTotalPlayTime(txtFolderPath.Text);
+                DisplayTotalPlayTime();
             }
             else
             {
@@ -124,6 +134,15 @@ namespace StarCitizenPlaytimeCalculator
             txtOutput.ScrollToCaret();
         }
 
+        private void DisplayTotalPlayTime()
+        {
+            string formattedPlayTime = comboBoxFormat.SelectedItem.ToString() == "Hours"
+                ? FormatPlayTimeInHours(totalPlayTime)
+                : FormatPlayTime(totalPlayTime);
+
+            txtTotalPlayTime.Text = $"Total Playtime: {formattedPlayTime}";
+        }
+
         private string FormatPlayTime(TimeSpan totalPlayTime)
         {
             int months = (int)(totalPlayTime.TotalDays / 30);
@@ -133,6 +152,44 @@ namespace StarCitizenPlaytimeCalculator
             int seconds = totalPlayTime.Seconds;
 
             return $"{months} months, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds";
+        }
+
+        private string FormatPlayTimeInHours(TimeSpan totalPlayTime)
+        {
+            int totalHours = (int)totalPlayTime.TotalHours;
+            int minutes = totalPlayTime.Minutes;
+            int seconds = totalPlayTime.Seconds;
+
+            return $"{totalHours} hours, {minutes} minutes, {seconds} seconds";
+        }
+
+        private void comboBoxFormat_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            DisplayTotalPlayTime();
+        }
+    }
+
+    public static class FolderBrowserDialogHelper
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        private const int BFFM_INITIALIZED = 1;
+        private const int BFFM_SETSELECTIONW = 1126;
+
+        public static void ScrollToPath(FolderBrowserDialog fbd)
+        {
+            IntPtr hwnd = IntPtr.Zero;
+            IntPtr pathPtr = Marshal.StringToHGlobalUni(fbd.SelectedPath);
+            try
+            {
+                SendMessage(hwnd, BFFM_INITIALIZED, IntPtr.Zero, IntPtr.Zero);
+                SendMessage(hwnd, BFFM_SETSELECTIONW, IntPtr.Zero, pathPtr);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(pathPtr);
+            }
         }
     }
 }
