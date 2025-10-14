@@ -28,8 +28,12 @@ def get_totals(path=r'C:\Program Files\Roberts Space Industries\StarCitizen\LIVE
     # For each file, extract first and last timestamp and calculate the delta
     for file in get_files(path):
         log_output += "Opening logfile: " + file + "\n"
-        with open(file, 'r', encoding='utf-8') as f:
-            text_content = f.read().split("\n")
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                text_content = f.read().split("\n")
+        except UnicodeDecodeError:
+            with open(file, 'r', encoding='latin-1') as f:
+                text_content = f.read().split("\n")
         dates = extract_dates(text_content)
         if dates:
             start_log = convert_to_datetime(dates[0])
