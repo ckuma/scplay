@@ -8,6 +8,27 @@ You need to give the path to your logbackups folder and it'll do the rest.
 ## Executable
 If you trust me, you can grab the exe in release and open that, then select the folder "logbackups" in your StarCitizen install. You don't have to trust me if you can run the python code yourself (and even generate the executable).
 
+## 🐧 Linux setup (manual bootstrap)
+
+If you're on Linux, a small helper script named `linux_start.sh` can bootstrap your environment.
+
+```bash
+chmod +x linux_start.sh
+./linux_start.sh
+````
+
+It will:
+
+* Use Python 3.11 to create a virtual environment (`myenv`)
+* Install dependencies from `requirements.txt`
+* Launch `sc_main.py`
+
+Make sure you have Python 3.11 and `python3.11-venv` installed:
+
+```bash
+sudo apt install python3.11 python3.11-venv
+```
+
 ## Python GUI/CLI
 
 If you can use Python, either call sc_playtime (to use as CLI) or sc_main (to start the GUI).  
