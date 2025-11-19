@@ -91,7 +91,7 @@ class SCPlaytimeCalculator:
 
     def _create_config_section(self):
         """Create the configuration/input section."""
-        config_frame = ttk.LabelFrame(
+        config_frame = ttk.Labelframe(
             self.mainframe,
             text="Configuration",
             bootstyle="info",
@@ -164,7 +164,7 @@ class SCPlaytimeCalculator:
 
     def _create_log_section(self):
         """Create the log output section."""
-        log_frame = ttk.LabelFrame(
+        log_frame = ttk.Labelframe(
             self.mainframe,
             text="Processing Log",
             bootstyle="secondary",
@@ -217,7 +217,7 @@ class SCPlaytimeCalculator:
 
     def _create_results_section(self):
         """Create the results display section."""
-        results_frame = ttk.LabelFrame(
+        results_frame = ttk.Labelframe(
             self.mainframe,
             text="Results",
             bootstyle="success",

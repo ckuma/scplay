@@ -56,9 +56,9 @@ namespace StarCitizenPlaytimeCalculator
             //
             // Form colors
             //
-            Color bgDark = Color.FromArgb(26, 26, 46);
-            Color bgPanel = Color.FromArgb(22, 33, 62);
-            Color accentCyan = Color.FromArgb(0, 212, 255);
+            Color bgDark = Color.FromArgb(30, 30, 35);
+            Color bgPanel = Color.FromArgb(42, 42, 50);
+            Color accentCyan = Color.FromArgb(130, 170, 210);
             Color accentGreen = Color.FromArgb(0, 255, 136);
             Color textLight = Color.FromArgb(224, 224, 224);
             Color textSecondary = Color.FromArgb(160, 160, 160);
@@ -142,7 +142,7 @@ namespace StarCitizenPlaytimeCalculator
             //
             // btnRefresh
             //
-            this.btnRefresh.BackColor = Color.FromArgb(15, 52, 96);
+            this.btnRefresh.BackColor = Color.FromArgb(55, 60, 70);
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.FlatAppearance.BorderColor = accentCyan;
             this.btnRefresh.ForeColor = accentCyan;
@@ -324,7 +324,7 @@ namespace StarCitizenPlaytimeCalculator
             // btnCopyToClipboard
             //
             this.btnCopyToClipboard.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
-            this.btnCopyToClipboard.BackColor = Color.FromArgb(15, 52, 96);
+            this.btnCopyToClipboard.BackColor = Color.FromArgb(55, 60, 70);
             this.btnCopyToClipboard.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCopyToClipboard.FlatAppearance.BorderColor = accentGreen;
             this.btnCopyToClipboard.ForeColor = accentGreen;

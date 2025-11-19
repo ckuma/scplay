@@ -15,7 +15,7 @@ namespace StarCitizenPlaytimeCalculator
         private Dictionary<string, string> detectedPaths = new Dictionary<string, string>();
 
         // Colors for formatting
-        private readonly Color accentCyan = Color.FromArgb(0, 212, 255);
+        private readonly Color accentCyan = Color.FromArgb(130, 170, 210);
         private readonly Color accentGreen = Color.FromArgb(0, 255, 136);
         private readonly Color accentGold = Color.FromArgb(255, 215, 0);
         private readonly Color textLight = Color.FromArgb(224, 224, 224);
