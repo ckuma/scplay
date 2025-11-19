@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
-    name: Lint & Type Check
+  lint-python:
+    name: Lint Python
     runs-on: ubuntu-latest
 
     steps:
@@ -40,7 +40,7 @@ jobs:
 
   build-python-windows:
     name: Build Python (Windows)
-    needs: [lint]
+    needs: [lint-python]
     runs-on: windows-latest
 
     steps:
@@ -74,7 +74,7 @@ jobs:
 
   build-python-linux:
     name: Build Python (Linux)
-    needs: [lint]
+    needs: [lint-python]
     runs-on: ubuntu-latest
 
     steps:
@@ -113,7 +113,6 @@ jobs:
 
   build-csharp:
     name: Build C# (Windows)
-    needs: [lint]
     runs-on: windows-latest
 
     steps:
