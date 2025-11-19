@@ -12,7 +12,7 @@ import sc_playtime
 
 # Use high DPI awareness for better rendering on Windows
 try:
-    from ctypes import windll
+    from ctypes import windll  # type: ignore[attr-defined]
     windll.shcore.SetProcessDpiAwareness(1)
 except Exception:
     pass  # Fails on non-Windows systems
@@ -487,7 +487,7 @@ class SCPlaytimeCalculator:
             for icon_path in icon_paths:
                 if os.path.exists(icon_path):
                     icon = Image.open(icon_path)
-                    icon = icon.resize((16, 16), Image.LANCZOS)
+                    icon = icon.resize((16, 16), Image.Resampling.LANCZOS)
                     self.copy_icon = ImageTk.PhotoImage(icon)
                     self.copy_btn.configure(image=self.copy_icon, compound=LEFT)
                     break
