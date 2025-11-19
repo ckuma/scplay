@@ -95,7 +95,7 @@ class SCPlaytimeCalculator:
         config_frame = ttk.Labelframe(
             self.mainframe,
             text="Configuration",
-            bootstyle="info",
+            bootstyle="secondary",
             padding=15
         )
         config_frame.pack(fill=X, pady=(0, 15))
@@ -116,7 +116,7 @@ class SCPlaytimeCalculator:
             env_row,
             state='readonly',
             width=25,
-            bootstyle="info"
+            bootstyle="secondary"
         )
         self.env_combobox.pack(side=LEFT, padx=(0, 10))
         self.env_combobox.bind("<<ComboboxSelected>>", self._on_environment_change)
@@ -125,7 +125,7 @@ class SCPlaytimeCalculator:
             env_row,
             text="Refresh",
             command=self._detect_installations,
-            bootstyle="info-outline",
+            bootstyle="secondary-outline",
             width=10
         )
         refresh_btn.pack(side=LEFT)
@@ -221,7 +221,7 @@ class SCPlaytimeCalculator:
         results_frame = ttk.Labelframe(
             self.mainframe,
             text="Results",
-            bootstyle="success",
+            bootstyle="secondary",
             padding=15
         )
         results_frame.pack(fill=X, pady=(0, 15))
@@ -243,7 +243,7 @@ class SCPlaytimeCalculator:
             values=["Default", "Hours", "Minutes", "Seconds", "Days"],
             state='readonly',
             width=10,
-            bootstyle="success"
+            bootstyle="secondary"
         )
         self.unit_combobox.set("Default")
         self.unit_combobox.pack(side=LEFT, padx=(0, 20))
@@ -261,7 +261,7 @@ class SCPlaytimeCalculator:
         self.result_entry = ttk.Entry(
             results_row,
             font=("Segoe UI", 12, "bold"),
-            bootstyle="success"
+            bootstyle="secondary"
         )
         self.result_entry.pack(side=LEFT, fill=X, expand=YES, padx=(0, 10))
 
@@ -270,7 +270,7 @@ class SCPlaytimeCalculator:
             results_row,
             text="Copy",
             command=self._copy_to_clipboard,
-            bootstyle="success-outline",
+            bootstyle="secondary-outline",
             width=8
         )
         self.copy_btn.pack(side=LEFT)
