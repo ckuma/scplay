@@ -15,17 +15,31 @@ def get_default_paths():
     paths = {}
 
     if system == 'Windows':
-        base_paths = [
-            r'C:\Program Files\Roberts Space Industries\StarCitizen',
-            os.path.expanduser(r'~\AppData\Local\Roberts Space Industries\StarCitizen'),
-        ]
+        # Check common installation drives
+        drives = ['C', 'D', 'E', 'F']
+        base_paths = []
+
+        for drive in drives:
+            base_paths.append(rf'{drive}:\Program Files\Roberts Space Industries\StarCitizen')
+            base_paths.append(rf'{drive}:\Roberts Space Industries\StarCitizen')
+
+        # Also check user's AppData
+        base_paths.append(os.path.expanduser(r'~\AppData\Local\Roberts Space Industries\StarCitizen'))
+
         environments = ['LIVE', 'PTU', 'EPTU', 'TECH-PREVIEW']
 
         for base in base_paths:
             for env in environments:
                 path = os.path.join(base, env, 'logbackups')
                 if os.path.exists(path):
-                    paths[env] = path
+                    # Add drive letter to environment name if not on C:
+                    if not base.startswith('C:'):
+                        drive_letter = base[0]
+                        key = f"{env} ({drive_letter}:)"
+                    else:
+                        key = env
+                    if key not in paths:  # Don't overwrite if already found
+                        paths[key] = path
 
     elif system == 'Linux':
         # Wine default prefix
