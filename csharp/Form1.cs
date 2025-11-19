@@ -1,8 +1,9 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace StarCitizenPlaytimeCalculator
@@ -11,16 +12,101 @@ namespace StarCitizenPlaytimeCalculator
     {
         private const string DefaultPath = @"C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\logbackups";
         private TimeSpan totalPlayTime = TimeSpan.Zero;
+        private Dictionary<string, string> detectedPaths = new Dictionary<string, string>();
+
+        // Colors for formatting
+        private readonly Color accentCyan = Color.FromArgb(130, 170, 210);
+        private readonly Color accentGreen = Color.FromArgb(0, 255, 136);
+        private readonly Color accentGold = Color.FromArgb(255, 215, 0);
+        private readonly Color textLight = Color.FromArgb(224, 224, 224);
 
         public Form1()
         {
             InitializeComponent();
-            // Pre-fill the folder path with the default value if it exists
-            if (Directory.Exists(DefaultPath))
+            comboBoxFormat.SelectedIndex = 0;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Load and resize the clipboard icon
+            try
             {
-                txtFolderPath.Text = DefaultPath;
+                var originalImage = StarCitizenPlaytimeCalculator.Properties.Resources.clipboard_icon;
+                var resizedImage = new Bitmap(originalImage, new Size(this.btnCopyToClipboard.Height - 4, this.btnCopyToClipboard.Height - 4));
+                this.btnCopyToClipboard.Image = resizedImage;
             }
-            comboBoxFormat.SelectedIndex = 0; // Default to "Default" format
+            catch
+            {
+                // Icon loading is optional
+            }
+
+            // Detect installations on load
+            DetectInstallations();
+        }
+
+        private void DetectInstallations()
+        {
+            detectedPaths.Clear();
+            comboEnvironment.Items.Clear();
+
+            // Common installation paths to check
+            string[] drivesToCheck = { "C", "D", "E", "F", "G" };
+            string[] environments = { "LIVE", "PTU", "EPTU", "TECH-PREVIEW" };
+
+            foreach (var drive in drivesToCheck)
+            {
+                string basePath = $@"{drive}:\Program Files\Roberts Space Industries\StarCitizen";
+
+                if (Directory.Exists(basePath))
+                {
+                    foreach (var env in environments)
+                    {
+                        string logPath = Path.Combine(basePath, env, "logbackups");
+                        if (Directory.Exists(logPath))
+                        {
+                            string key = drive == "C" ? env : $"{env} ({drive}:)";
+                            detectedPaths[key] = logPath;
+                        }
+                    }
+                }
+            }
+
+            if (detectedPaths.Count > 0)
+            {
+                foreach (var env in detectedPaths.Keys)
+                {
+                    comboEnvironment.Items.Add(env);
+                }
+                comboEnvironment.SelectedIndex = 0;
+                UpdateStatus($"Found {detectedPaths.Count} environment(s)", StatusType.Info);
+            }
+            else
+            {
+                comboEnvironment.Items.Add("No installations found");
+                comboEnvironment.SelectedIndex = 0;
+
+                // Set default path for manual browsing
+                if (Directory.Exists(DefaultPath))
+                {
+                    txtFolderPath.Text = DefaultPath;
+                }
+                UpdateStatus("No Star Citizen installation detected - please browse manually", StatusType.Warning);
+            }
+        }
+
+        private void comboEnvironment_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selected = comboEnvironment.SelectedItem?.ToString();
+            if (selected != null && detectedPaths.ContainsKey(selected))
+            {
+                txtFolderPath.Text = detectedPaths[selected];
+                UpdateStatus($"Selected {selected} environment", StatusType.Info);
+            }
+        }
+
+        private void btnRefresh_Click(object sender, EventArgs e)
+        {
+            DetectInstallations();
         }
 
         private void btnBrowse_Click(object sender, EventArgs e)
@@ -28,33 +114,69 @@ namespace StarCitizenPlaytimeCalculator
             using (var folderDialog = new FolderBrowserDialog())
             {
                 folderDialog.Description = "Browse for logbackups folder";
-                folderDialog.SelectedPath = DefaultPath;
+
+                if (!string.IsNullOrEmpty(txtFolderPath.Text) && Directory.Exists(txtFolderPath.Text))
+                {
+                    folderDialog.SelectedPath = txtFolderPath.Text;
+                }
+                else
+                {
+                    folderDialog.SelectedPath = DefaultPath;
+                }
 
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
                     txtFolderPath.Text = folderDialog.SelectedPath;
-                }
-                else
-                {
-                    if (Directory.Exists(folderDialog.SelectedPath))
-                    {
-                        FolderBrowserDialogHelper.ScrollToPath(folderDialog);
-                    }
+                    UpdateStatus($"Selected: {folderDialog.SelectedPath}", StatusType.Info);
                 }
             }
         }
 
-        private void btnProcessLogs_Click(object sender, EventArgs e)
+        private async void btnProcessLogs_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(txtFolderPath.Text))
-            {
-                txtOutput.Clear();
-                totalPlayTime = CalculateTotalPlayTime(txtFolderPath.Text);
-                DisplayTotalPlayTime();
-            }
-            else
+            if (!Directory.Exists(txtFolderPath.Text))
             {
                 MessageBox.Show("The selected folder does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateStatus("Error: Path does not exist", StatusType.Error);
+                return;
+            }
+
+            // Disable button and show progress
+            btnProcessLogs.Enabled = false;
+            progressBar.Visible = true;
+            txtOutput.Clear();
+            UpdateStatus("Calculating...", StatusType.Info);
+
+            try
+            {
+                // Run calculation asynchronously
+                await Task.Run(() =>
+                {
+                    totalPlayTime = CalculateTotalPlayTime(txtFolderPath.Text);
+                });
+
+                // Update display
+                DisplayTotalPlayTime();
+
+                var logFiles = Directory.GetFiles(txtFolderPath.Text, "*.log", SearchOption.AllDirectories);
+                if (logFiles.Length > 0)
+                {
+                    UpdateStatus($"Processed {logFiles.Length} log file(s) successfully", StatusType.Success);
+                }
+                else
+                {
+                    UpdateStatus("No valid log files found in the selected path", StatusType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus($"Error: {ex.Message}", StatusType.Error);
+            }
+            finally
+            {
+                // Re-enable button and hide progress
+                btnProcessLogs.Enabled = true;
+                progressBar.Visible = false;
             }
         }
 
@@ -63,16 +185,22 @@ namespace StarCitizenPlaytimeCalculator
             if (!string.IsNullOrEmpty(txtTotalPlayTime.Text))
             {
                 Clipboard.SetText(txtTotalPlayTime.Text);
+                UpdateStatus("Copied to clipboard!", StatusType.Success);
                 toolTip.SetToolTip(btnCopyToClipboard, "Copied!");
-            }
-        }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            // Load and resize the clipboard icon
-            var originalImage = StarCitizenPlaytimeCalculator.Properties.Resources.clipboard_icon;
-            var resizedImage = new Bitmap(originalImage, new Size(this.btnCopyToClipboard.Height - 4, this.btnCopyToClipboard.Height - 4));
-            this.btnCopyToClipboard.Image = resizedImage;
+                // Reset tooltip after 2 seconds
+                Task.Delay(2000).ContinueWith(_ =>
+                {
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            toolTip.SetToolTip(btnCopyToClipboard, "Copy to clipboard");
+                            UpdateStatus("Ready", StatusType.Info);
+                        }));
+                    }
+                });
+            }
         }
 
         private TimeSpan CalculateTotalPlayTime(string folderPath)
@@ -82,8 +210,13 @@ namespace StarCitizenPlaytimeCalculator
 
             foreach (var logFile in logFiles)
             {
-                AppendBoldText("File: ");
-                AppendText($"{logFile}, ");
+                // Use Invoke for thread-safe UI updates
+                this.Invoke(new Action(() =>
+                {
+                    AppendColoredText("File: ", accentCyan, true);
+                    AppendColoredText($"{logFile}\n", textLight, false);
+                }));
+
                 var lines = File.ReadAllLines(logFile);
                 DateTime? firstTimestamp = null;
                 DateTime? lastTimestamp = null;
@@ -108,39 +241,60 @@ namespace StarCitizenPlaytimeCalculator
                 {
                     var sessionTime = lastTimestamp.Value - firstTimestamp.Value;
                     totalPlayTime += sessionTime;
-                    AppendBoldText("Session Time: ");
-                    AppendText($"{sessionTime}{Environment.NewLine}");
+
+                    this.Invoke(new Action(() =>
+                    {
+                        AppendColoredText("Session Time: ", accentCyan, true);
+                        AppendColoredText($"{sessionTime}\n", accentGold, false);
+                    }));
                 }
             }
 
-            AppendBoldText("Total logs processed: ");
-            AppendText($"{logFiles.Length}{Environment.NewLine}");
-            AppendBoldText("Total Play Time: ");
-            AppendText($"{FormatPlayTime(totalPlayTime)}{Environment.NewLine}");
+            this.Invoke(new Action(() =>
+            {
+                AppendColoredText($"\nTotal logs processed: {logFiles.Length}\n", accentGreen, true);
+                AppendColoredText($"Total Play Time: {FormatPlayTime(totalPlayTime)}\n", accentGreen, true);
+            }));
+
             return totalPlayTime;
         }
 
-        private void AppendBoldText(string text)
+        private void AppendColoredText(string text, Color color, bool bold)
         {
-            txtOutput.SelectionFont = new Font(txtOutput.Font, FontStyle.Bold);
+            txtOutput.SelectionStart = txtOutput.TextLength;
+            txtOutput.SelectionLength = 0;
+            txtOutput.SelectionColor = color;
+            txtOutput.SelectionFont = new Font(txtOutput.Font, bold ? FontStyle.Bold : FontStyle.Regular);
             txtOutput.AppendText(text);
-            txtOutput.SelectionFont = new Font(txtOutput.Font, FontStyle.Regular);
-            txtOutput.ScrollToCaret();
-        }
-
-        private void AppendText(string text)
-        {
-            txtOutput.AppendText(text);
+            txtOutput.SelectionColor = txtOutput.ForeColor;
             txtOutput.ScrollToCaret();
         }
 
         private void DisplayTotalPlayTime()
         {
-            string formattedPlayTime = comboBoxFormat.SelectedItem.ToString() == "Hours"
-                ? FormatPlayTimeInHours(totalPlayTime)
-                : FormatPlayTime(totalPlayTime);
+            string format = comboBoxFormat.SelectedItem?.ToString() ?? "Default";
+            string formattedPlayTime;
 
-            txtTotalPlayTime.Text = $"Total Playtime: {formattedPlayTime}";
+            switch (format)
+            {
+                case "Hours":
+                    formattedPlayTime = FormatPlayTimeInHours(totalPlayTime);
+                    break;
+                case "Minutes":
+                    formattedPlayTime = $"{totalPlayTime.TotalMinutes:F2} minutes";
+                    break;
+                case "Seconds":
+                    formattedPlayTime = $"{totalPlayTime.TotalSeconds:F0} seconds";
+                    break;
+                case "Days":
+                    formattedPlayTime = $"{totalPlayTime.TotalDays:F2} days";
+                    break;
+                default:
+                    formattedPlayTime = FormatPlayTime(totalPlayTime);
+                    break;
+            }
+
+            txtTotalPlayTime.Text = formattedPlayTime;
         }
 
         private string FormatPlayTime(TimeSpan totalPlayTime)
@@ -165,30 +319,38 @@ namespace StarCitizenPlaytimeCalculator
 
         private void comboBoxFormat_SelectedIndexChanged(object sender, EventArgs e)
         {
-            DisplayTotalPlayTime();
-        }
-    }
-
-    public static class FolderBrowserDialogHelper
-    {
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-
-        private const int BFFM_INITIALIZED = 1;
-        private const int BFFM_SETSELECTIONW = 1126;
-
-        public static void ScrollToPath(FolderBrowserDialog fbd)
-        {
-            IntPtr hwnd = IntPtr.Zero;
-            IntPtr pathPtr = Marshal.StringToHGlobalUni(fbd.SelectedPath);
-            try
+            if (totalPlayTime != TimeSpan.Zero)
             {
-                SendMessage(hwnd, BFFM_INITIALIZED, IntPtr.Zero, IntPtr.Zero);
-                SendMessage(hwnd, BFFM_SETSELECTIONW, IntPtr.Zero, pathPtr);
+                DisplayTotalPlayTime();
             }
-            finally
+        }
+
+        private enum StatusType
+        {
+            Info,
+            Success,
+            Warning,
+            Error
+        }
+
+        private void UpdateStatus(string message, StatusType type)
+        {
+            statusLabel.Text = message;
+
+            switch (type)
             {
-                Marshal.FreeHGlobal(pathPtr);
+                case StatusType.Success:
+                    statusLabel.ForeColor = accentGreen;
+                    break;
+                case StatusType.Warning:
+                    statusLabel.ForeColor = Color.FromArgb(255, 193, 7);
+                    break;
+                case StatusType.Error:
+                    statusLabel.ForeColor = Color.FromArgb(220, 53, 69);
+                    break;
+                default:
+                    statusLabel.ForeColor = Color.FromArgb(160, 160, 160);
+                    break;
             }
         }
     }

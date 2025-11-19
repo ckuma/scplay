@@ -1,2 +1,3 @@
 python-dateutil>=2.8.0
 pillow>=9.0.0
+ttkbootstrap>=1.10.0

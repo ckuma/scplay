@@ -45,15 +45,27 @@ Since Star Citizen doesn't expose playtime statistics in-game, SCPlay parses you
 ### Download Pre-built Executable
 
 1. Go to [Releases](https://github.com/ckuma/scplay/releases)
-2. Download the latest `.zip` for your preferred version
+2. Download the appropriate `.zip` for your platform
 3. Extract and run
 
-### Available Versions
+### Available Downloads
 
-| Version | Platform | Framework | Best For |
-|---------|----------|-----------|----------|
-| **Python** | Windows, Linux, macOS | Tkinter | Cross-platform users |
-| **C#** | Windows | WinForms | Windows-only users |
+| Release | Platform | Description |
+|---------|----------|-------------|
+| `SCPlaytime-Python-Windows` | Windows | Python executable (.exe) |
+| `SCPlaytime-Python-Linux` | Linux | Python executable (binary) |
+| `SCPlaytime-CSharp-Windows` | Windows | C# WinForms executable (.exe) |
+
+**Note:** macOS users should run the Python version from source (see Installation below).
+
+### v2.0 Design
+
+Both versions feature a modernized dark UI with Star Citizen-inspired aesthetics:
+- Dark navy theme with cyan/green accents
+- Grouped panels (Configuration, Processing Log, Results)
+- Color-coded log output
+- Progress indicators during calculation
+- Status bar with colored feedback
 
 ---
 
@@ -186,7 +198,7 @@ Output: `bin/Release/StarCitizenPlaytimeCalculator.exe`
 
 This repository uses GitHub Actions to automatically build releases:
 
-- **On tag push** (`v*`) - Creates a GitHub Release with both executables
+- **On tag push** (`v*`) - Creates a GitHub Release with 3 executables (Python Windows, Python Linux, C# Windows)
 - **On PR** - Validates builds
 
 To create a new release:
@@ -228,6 +240,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 - Star Citizen community
 - All contributors
+- [VNGD](https://vngd.net/)
 
 ---
 
