@@ -1,34 +1,159 @@
-# What is it?
+# Star Citizen Playtime Calculator (SCPlay)
 
-A quick and dirty Star Citizen total playtime calculator based on your Game logs (*.log files in SC folder).  
-You need to give the path to your logbackups folder and it'll do the rest.
+Calculate your total Star Citizen playtime by analyzing game log files. Since Star Citizen doesn't expose playtime statistics in-game, this tool parses your log files to compute cumulative play sessions.
 
-# How do I run this?
+## Features
 
-## Executable
-If you trust me, you can grab the exe in release and open that, then select the folder "logbackups" in your StarCitizen install.  
+- **Automatic detection** of Star Citizen installations (LIVE, PTU, EPTU, TECH-PREVIEW)
+- **Cross-platform support** - Python version works on Windows, Linux (Wine), and macOS (CrossOver)
+- **Multiple output formats** - Default, Hours, Minutes, Seconds, Days
+- **Session breakdown** - See playtime per log file
+- **Clipboard support** - Copy results with one click
 
-In most typical installs it would be in `C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\logbackups`.  
-Note: LIVE would be for the typical production env, feel free to use other envs to calculate your total there.  
+## Available Versions
 
-**You don't have to trust me** if you can run the python code yourself from the main branch (and even generate the executable).  
-**You don't have to trust me** if you can clone this branch and build the solution using Visual Studio 2022 (I use the community edition, and have very little in the way of dependencies).
+This repository contains two implementations:
 
-**TL;DR:** build the solution (C#) yourself, or run the Python code yourself, or trust that I am not a pirate (although I do love me some Drake ships).  
+| Version | Location | Platform | UI Framework |
+|---------|----------|----------|--------------|
+| **Python** | `/python` | Windows, Linux, macOS | Tkinter |
+| **C#** | `/csharp` | Windows | Windows Forms |
 
-## What the program does
+---
 
-SCPlay Iterates over logs, identifies dates and timestamps using regexps, calculates delta per-log, adds them all up. That's it.
+## Python Version
 
-Since the stats aren't available anywhere, the only way to gather that information is by going through the log files (current session `Game.log` and past sessions in the `logbackup/*.log` files)  
+### Requirements
 
-The logic is basic and has very little error handling.  
-Looks for log files in logbackups, adding the `Game.log` file one folder up (most recent log), and then calculates deltas within each of those files between the first timestamp and the last one.  
+- Python 3.8+
+- Dependencies: `python-dateutil`, `pillow`
 
-![image](https://github.com/ckuma/scplay/assets/51863237/a9332bc2-0b20-46b7-893b-50551317728f)
+### Installation
 
+```bash
+cd python
+pip install -r requirements.txt
+```
 
-# License
+### Running
 
-Do whatever you want with it, it's not mine it's everybody's. Cheers.  
-(Tentatively put MIT but probably more [WTFPL](http://en.wikipedia.org/wiki/WTFPL) to be honest!)
+```bash
+python sc_main.py
+```
+
+Or on Linux:
+```bash
+./linux_start.sh
+```
+
+### Building Executable (Windows)
+
+```bash
+cd python
+build_exe.bat
+```
+
+### Features
+
+- Auto-detects all SC environments (LIVE, PTU, EPTU, TECH-PREVIEW)
+- Environment selector dropdown
+- Status bar with feedback
+- Cross-platform path detection:
+  - Windows: Standard RSI installation paths
+  - Linux: Wine prefixes, Lutris, Proton/Steam
+  - macOS: CrossOver bottles
+
+---
+
+## C# Version
+
+### Requirements
+
+- .NET Framework 4.8.1
+- Visual Studio 2022 (Community Edition works)
+
+### Building
+
+1. Open `csharp/StarCitizenPlaytimeCalculator.sln` in Visual Studio
+2. Build the solution (Ctrl+Shift+B)
+3. Run from Debug or Release folder
+
+### Features
+
+- Windows Forms UI
+- Default path auto-detection
+- Multiple output formats (Default, Hours)
+- Clipboard integration
+
+---
+
+## Default Installation Paths
+
+The tool automatically searches for Star Citizen in these locations:
+
+### Windows
+```
+C:\Program Files\Roberts Space Industries\StarCitizen\{ENV}\logbackups
+```
+Where `{ENV}` is: LIVE, PTU, EPTU, or TECH-PREVIEW
+
+### Linux (Wine)
+```
+~/.wine/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
+```
+
+### macOS (CrossOver)
+```
+~/Library/Application Support/CrossOver/Bottles/{BOTTLE}/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
+```
+
+---
+
+## How It Works
+
+1. Scans all `*.log` files in the logbackups folder
+2. Includes current session `Game.log` from parent directory
+3. Extracts timestamps matching `<YYYY-MM-DDTHH:MM:SS...>` format
+4. Calculates session duration: `last_timestamp - first_timestamp`
+5. Sums all sessions to get total playtime
+
+### Example Log Entry
+```
+<2024-11-19T14:30:00.123Z> [INFO] Client started...
+<2024-11-19T16:45:30.456Z> [INFO] Client closing...
+```
+**Result:** 2 hours, 15 minutes, 30 seconds
+
+---
+
+## Screenshots
+
+### Python Version
+![Python Version](https://github.com/ckuma/scplay/assets/51863237/a9332bc2-0b20-46b7-893b-50551317728f)
+
+---
+
+## Releases
+
+Pre-built executables are available in the [Releases](https://github.com/ckuma/scplay/releases) section.
+
+**Note:** You can always build from source if you prefer not to run pre-built binaries.
+
+---
+
+## License
+
+MIT License (but really more [WTFPL](http://en.wikipedia.org/wiki/WTFPL) in spirit)
+
+Do whatever you want with it - it's not mine, it's everybody's. Cheers!
+
+---
+
+## Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+
+See you in the 'verse! o7
