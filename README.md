@@ -52,8 +52,17 @@ Since Star Citizen doesn't expose playtime statistics in-game, SCPlay parses you
 
 | Version | Platform | Framework | Best For |
 |---------|----------|-----------|----------|
-| **Python** | Windows, Linux, macOS | Tkinter | Cross-platform users |
+| **Python** | Windows, Linux, macOS | ttkbootstrap (Modern Tkinter) | Cross-platform users |
 | **C#** | Windows | WinForms | Windows-only users |
+
+### v2.0 Design
+
+Both versions feature a modernized dark UI with Star Citizen-inspired aesthetics:
+- Dark navy theme with cyan/green accents
+- Grouped panels (Configuration, Processing Log, Results)
+- Color-coded log output
+- Progress indicators during calculation
+- Status bar with colored feedback
 
 ---
 
@@ -228,6 +237,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 - Star Citizen community
 - All contributors
+- [VNGD](https://vngd.net/)
 
 ---
 
