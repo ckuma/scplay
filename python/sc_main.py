@@ -1,13 +1,14 @@
-import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from ttkbootstrap.dialogs import Messagebox
-from tkinter import filedialog
-import tkinter as tk
 import os
-import sys
 import threading
-import sc_playtime
+import tkinter as tk
+from tkinter import filedialog
+
+import ttkbootstrap as ttk
 from PIL import Image, ImageTk
+from ttkbootstrap.constants import BOTH, LEFT, RIGHT, VERTICAL, YES, X, Y
+from ttkbootstrap.dialogs import Messagebox
+
+import sc_playtime
 
 # Use high DPI awareness for better rendering on Windows
 try:
@@ -386,7 +387,8 @@ class SCPlaytimeCalculator:
             # Update UI in main thread
             self.root.after(0, lambda: self._calculation_complete(log_output, file_count))
         except Exception as e:
-            self.root.after(0, lambda: self._calculation_error(str(e)))
+            error_msg = str(e)
+            self.root.after(0, lambda msg=error_msg: self._calculation_error(msg))
 
     def _calculation_complete(self, log_output, file_count):
         """Handle calculation completion."""

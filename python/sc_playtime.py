@@ -1,10 +1,10 @@
-import os
 import glob
+import os
 import platform
-import dateutil.parser
 import re
 from datetime import timedelta
-from pathlib import Path
+
+import dateutil.parser
 
 # Compile regular expression for efficiency
 date_pattern = re.compile(r'^<(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).*')
