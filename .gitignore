@@ -315,6 +315,22 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Python virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# PyInstaller
+python/dist/
+python/build/
+python/*.spec
+
+# Jupyter Notebook
+.ipynb_checkpoints
 
 # Cake - Uncomment if you are using it
 # tools/**

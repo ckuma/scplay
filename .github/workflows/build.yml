@@ -1,0 +1,111 @@
+name: Build Releases
+
+on:
+  push:
+    branches:
+      - 'release/*'
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-python:
+    name: Build Python Executable
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable
+        working-directory: python
+        run: |
+          pyinstaller --onefile --windowed --name "SCPlaytime" `
+            --add-data "resources;resources" `
+            sc_main.py
+
+      - name: Upload Python artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SCPlaytime-Python-Windows
+          path: python/dist/SCPlaytime.exe
+
+  build-csharp:
+    name: Build C# Executable
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        working-directory: csharp
+        run: nuget restore StarCitizenPlaytimeCalculator.sln
+
+      - name: Build solution
+        working-directory: csharp
+        run: msbuild StarCitizenPlaytimeCalculator.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Upload C# artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SCPlaytime-CSharp-Windows
+          path: csharp/bin/Release/
+
+  create-release:
+    name: Create Release
+    needs: [build-python, build-csharp]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Python artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SCPlaytime-Python-Windows
+          path: artifacts/python
+
+      - name: Download C# artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SCPlaytime-CSharp-Windows
+          path: artifacts/csharp
+
+      - name: Create release archives
+        run: |
+          cd artifacts
+          zip -r ../SCPlaytime-Python-${{ github.ref_name }}.zip python/
+          zip -r ../SCPlaytime-CSharp-${{ github.ref_name }}.zip csharp/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            SCPlaytime-Python-${{ github.ref_name }}.zip
+            SCPlaytime-CSharp-${{ github.ref_name }}.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
