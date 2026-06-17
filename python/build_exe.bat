@@ -72,6 +72,7 @@ pyinstaller ^
     --windowed ^
     --name "SCPlaytime" ^
     --add-data "resources;resources" ^
+    --hidden-import "PIL._tkinter_finder" ^
     --clean ^
     --noconfirm ^
     sc_main.py
