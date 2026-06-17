@@ -90,7 +90,7 @@ namespace StarCitizenPlaytimeCalculator
             this.lblVersion.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.lblVersion.ForeColor = textSecondary;
             this.lblVersion.Location = new System.Drawing.Point(650, 22);
-            this.lblVersion.Text = "v2.0";
+            this.lblVersion.Text = "v4.3";
 
             //
             // panelConfig
