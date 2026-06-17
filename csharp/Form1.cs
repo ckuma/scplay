@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -49,25 +50,34 @@ namespace StarCitizenPlaytimeCalculator
             detectedPaths.Clear();
             comboEnvironment.Items.Clear();
 
-            // Common installation paths to check
-            string[] drivesToCheck = { "C", "D", "E", "F", "G" };
             string[] environments = { "LIVE", "PTU", "EPTU", "TECH-PREVIEW" };
 
-            foreach (var drive in drivesToCheck)
+            var seenBases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var rawBase in GetCandidateBasePaths())
             {
-                string basePath = $@"{drive}:\Program Files\Roberts Space Industries\StarCitizen";
+                string basePath;
+                try { basePath = Path.GetFullPath(rawBase); }
+                catch { continue; }
 
-                if (Directory.Exists(basePath))
+                if (!seenBases.Add(basePath) || !Directory.Exists(basePath))
+                    continue;
+
+                string driveLetter = basePath.Length > 0
+                    ? char.ToUpperInvariant(basePath[0]).ToString()
+                    : "";
+
+                foreach (var env in environments)
                 {
-                    foreach (var env in environments)
-                    {
-                        string logPath = Path.Combine(basePath, env, "logbackups");
-                        if (Directory.Exists(logPath))
-                        {
-                            string key = drive == "C" ? env : $"{env} ({drive}:)";
-                            detectedPaths[key] = logPath;
-                        }
-                    }
+                    string logPath = Path.Combine(basePath, env, "logbackups");
+                    if (!Directory.Exists(logPath))
+                        continue;
+
+                    string key = driveLetter == "C" ? env : $"{env} ({driveLetter}:)";
+                    // If two installs collide on the same key, disambiguate by full path.
+                    if (detectedPaths.TryGetValue(key, out var existing) && existing != logPath)
+                        key = $"{env} ({basePath})";
+                    if (!detectedPaths.ContainsKey(key))
+                        detectedPaths[key] = logPath;
                 }
             }
 
@@ -92,6 +102,68 @@ namespace StarCitizenPlaytimeCalculator
                 }
                 UpdateStatus("No Star Citizen installation detected - please browse manually", StatusType.Warning);
             }
+        }
+
+        // Candidate Star Citizen base install directories: common roots on every
+        // fixed drive, plus any custom library folder recorded by the RSI Launcher.
+        private static List<string> GetCandidateBasePaths()
+        {
+            var bases = new List<string>();
+            string[] commonRoots =
+            {
+                @"Program Files\Roberts Space Industries\StarCitizen",
+                @"Roberts Space Industries\StarCitizen",
+                @"Games\Roberts Space Industries\StarCitizen",
+                @"Games\StarCitizen",
+                @"StarCitizen",
+            };
+
+            foreach (var drive in DriveInfo.GetDrives())
+            {
+                if (!drive.IsReady || drive.DriveType != DriveType.Fixed)
+                    continue;
+                foreach (var root in commonRoots)
+                    bases.Add(Path.Combine(drive.RootDirectory.FullName, root));
+            }
+
+            // User AppData.
+            bases.Add(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                @"Roberts Space Industries\StarCitizen"));
+
+            // Authoritative source for custom library folders.
+            bases.AddRange(PathsFromLauncherLog());
+            return bases;
+        }
+
+        // Star Citizen base dirs recorded by the RSI Launcher log. The launcher's
+        // settings store is encrypted, but it logs plaintext lines such as
+        // "Installing Star Citizen LIVE ... at G:\Games\StarCitizen" - the only
+        // reliable way to find an install in a custom library folder.
+        private static List<string> PathsFromLauncherLog()
+        {
+            var bases = new List<string>();
+            string logPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                @"rsilauncher\logs\log.log");
+            if (!File.Exists(logPath))
+                return bases;
+
+            string content;
+            try { content = File.ReadAllText(logPath); }
+            catch { return bases; }
+
+            // Backslashes are JSON-escaped (doubled) in the log; the match is
+            // non-greedy so it stops at the shallowest StarCitizen directory.
+            var rx = new Regex(@"[A-Za-z]:(?:\\\\[^\\""(),]+)*?\\\\StarCitizen(?![A-Za-z0-9])");
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (Match m in rx.Matches(content))
+            {
+                string p = m.Value.Replace(@"\\", @"\");
+                if (seen.Add(p))
+                    bases.Add(p);
+            }
+            return bases;
         }
 
         private void comboEnvironment_SelectedIndexChanged(object sender, EventArgs e)
