@@ -1,3 +1,6 @@
-python-dateutil>=2.8.0
-pillow>=9.0.0
-ttkbootstrap>=1.10.0
+# Pinned for reproducible, CVE-clean release builds.
+# pillow<12.2.0 carries known CVEs (incl. ImageMath.eval RCE CVE-2023-50447,
+# libwebp heap overflow CVE-2023-4863); see CVE audit before bumping.
+python-dateutil==2.9.0.post0
+pillow==12.2.0
+ttkbootstrap==1.20.3
