@@ -1,11 +1,10 @@
 <p align="center">
   <h1 align="center">Star Citizen Playtime Calculator</h1>
   <p align="center">
-    Calculate your total Star Citizen playtime by analyzing game log files
+    Calculate your total Star Citizen playtime by analyzing game log files.
     <br />
-    <a href="https://github.com/ckuma/scplay/releases"><strong>Download Latest Release</strong></a>
-    <br />
-    <br />
+    <a href="https://github.com/ckuma/scplay/releases"><strong>Download Latest Release »</strong></a>
+    <br /><br />
     <a href="https://github.com/ckuma/scplay/issues">Report Bug</a>
     &middot;
     <a href="https://github.com/ckuma/scplay/issues">Request Feature</a>
@@ -13,237 +12,125 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ckuma/scplay/actions/workflows/build.yml">
-    <img src="https://github.com/ckuma/scplay/actions/workflows/build.yml/badge.svg" alt="Build Status">
-  </a>
-  <a href="https://github.com/ckuma/scplay/releases">
-    <img src="https://img.shields.io/github/v/release/ckuma/scplay" alt="Latest Release">
-  </a>
-  <a href="LICENSE.txt">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
-  </a>
+  <a href="https://github.com/ckuma/scplay/actions/workflows/build.yml"><img src="https://github.com/ckuma/scplay/actions/workflows/build.yml/badge.svg" alt="Build Status"></a>
+  <a href="https://github.com/ckuma/scplay/releases"><img src="https://img.shields.io/github/v/release/ckuma/scplay" alt="Latest Release"></a>
+  <a href="LICENSE.txt"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
 </p>
 
 ---
 
 ## About
 
-Since Star Citizen doesn't expose playtime statistics in-game, SCPlay parses your game log files to compute cumulative play sessions. It automatically detects your Star Citizen installation and calculates total time played across all sessions.
+Star Citizen doesn't show your total playtime, so SCPlay computes it from the game's log files. It auto-detects your installation, sums every session across LIVE / PTU / EPTU / TECH-PREVIEW, and reports the total in days, hours, minutes, or seconds.
 
-### Key Features
-
-- **Auto-detection** - Finds SC installations on multiple drives (C:, D:, E:, F:)
-- **Multi-environment** - Supports LIVE, PTU, EPTU, and TECH-PREVIEW
-- **Cross-platform** - Python version runs on Windows, Linux, and macOS
-- **Multiple formats** - View playtime as days, hours, minutes, or seconds
-- **Session details** - See individual session durations
+- **Auto-detection** — finds installs on any drive, including custom library folders (it reads the RSI Launcher log)
+- **All environments** — LIVE, PTU, EPTU, TECH-PREVIEW
+- **Cross-platform** — the Python build runs on Windows, Linux, and macOS
+- **Per-session breakdown** with one-click copy of the result
 
 ---
 
-## Quick Start
+## Download & Run
 
-### Download Pre-built Executable
+Grab the latest build from [**Releases**](https://github.com/ckuma/scplay/releases), unzip, and run — no installation required.
 
-1. Go to [Releases](https://github.com/ckuma/scplay/releases)
-2. Download the appropriate `.zip` for your platform
-3. Extract and run
+| Asset | Platform |
+|-------|----------|
+| `SCPlaytime-Python-Windows` | Windows (Python `.exe`) |
+| `SCPlaytime-Python-Linux` | Linux (binary) |
+| `SCPlaytime-CSharp-Windows` | Windows (C# WinForms `.exe`) |
 
-### Available Downloads
+> **macOS:** run the Python version from source (below).
 
-| Release | Platform | Description |
-|---------|----------|-------------|
-| `SCPlaytime-Python-Windows` | Windows | Python executable (.exe) |
-| `SCPlaytime-Python-Linux` | Linux | Python executable (binary) |
-| `SCPlaytime-CSharp-Windows` | Windows | C# WinForms executable (.exe) |
-
-**Note:** macOS users should run the Python version from source (see Installation below).
-
-### v2.0 Design
-
-Both versions feature a modernized dark UI with Star Citizen-inspired aesthetics:
-- Dark navy theme with cyan/green accents
-- Grouped panels (Configuration, Processing Log, Results)
-- Color-coded log output
-- Progress indicators during calculation
-- Status bar with colored feedback
+Then pick your environment from the dropdown (auto-detected), click **Calculate**, and copy the result.
 
 ---
 
-## Installation
+## Run from Source
 
-### Python Version
-
-**Requirements:** Python 3.8+
+**Python** (3.10+):
 
 ```bash
-# Clone the repository
 git clone https://github.com/ckuma/scplay.git
 cd scplay/python
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run the application
-python sc_main.py
+python sc_main.py        # Windows
+./linux_start.sh         # Linux / macOS (chmod +x first)
 ```
 
-**Linux/macOS:**
-```bash
-chmod +x linux_start.sh
-./linux_start.sh
-```
-
-### C# Version
-
-**Requirements:** .NET Framework 4.8.1, Visual Studio 2022
-
-1. Open `csharp/StarCitizenPlaytimeCalculator.sln`
-2. Build the solution (`Ctrl+Shift+B`)
-3. Run from `bin/Release/`
-
----
-
-## Usage
-
-1. **Launch** the application
-2. **Select** your Star Citizen environment from the dropdown (auto-detected)
-3. **Click** "Calculate" to process log files
-4. **View** your total playtime and per-session breakdown
-5. **Copy** the result to clipboard if needed
-
----
-
-## Supported Installation Paths
-
-SCPlay automatically searches for Star Citizen in these locations:
-
-### Windows
-
-```
-{DRIVE}:\Program Files\Roberts Space Industries\StarCitizen\{ENV}\logbackups
-{DRIVE}:\Roberts Space Industries\StarCitizen\{ENV}\logbackups
-```
-
-- **Drives:** C:, D:, E:, F:
-- **Environments:** LIVE, PTU, EPTU, TECH-PREVIEW
-
-### Linux
+**C#** (.NET Framework 4.8.1 — Visual Studio 2022 or Build Tools):
 
 ```bash
-# Wine
-~/.wine/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
-
-# Lutris
-~/.local/share/lutris/runners/wine/*/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
-
-# Steam/Proton
-~/.steam/steam/steamapps/compatdata/*/pfx/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
-```
-
-### macOS
-
-```bash
-# CrossOver
-~/Library/Application Support/CrossOver/Bottles/{BOTTLE}/drive_c/Program Files/Roberts Space Industries/StarCitizen/{ENV}/logbackups
+cd csharp
+msbuild StarCitizenPlaytimeCalculator.sln /p:Configuration=Release
+# or open the .sln in Visual Studio and build (Ctrl+Shift+B)
 ```
 
 ---
 
 ## How It Works
 
-SCPlay analyzes Star Citizen log files to calculate playtime:
-
-1. Scans all `*.log` files in the `logbackups` folder
-2. Includes the current session's `Game.log`
-3. Extracts timestamps using pattern: `<YYYY-MM-DDTHH:MM:SS...>`
-4. Calculates each session: `last_timestamp - first_timestamp`
-5. Sums all sessions for total playtime
-
-### Example
+SCPlay scans the `logbackups` folder (plus the current `Game.log`), extracts timestamps from each file, and sums `last − first` per session:
 
 ```
 <2024-11-19T14:30:00.123Z> [INFO] Client started...
-...
 <2024-11-19T16:45:30.456Z> [INFO] Client closing...
+→ Session: 2 hours, 15 minutes, 30 seconds
 ```
 
-**Session duration:** 2 hours, 15 minutes, 30 seconds
+**Detection** checks every fixed drive for the standard `Roberts Space Industries\StarCitizen` layout and common custom roots (e.g. `Games\StarCitizen`), and reads the RSI Launcher log (`%APPDATA%\rsilauncher\logs\log.log`) to locate installs in any custom library folder. On Linux/macOS it checks the usual Wine, Lutris, Proton, and CrossOver prefixes.
 
 ---
 
-## Building from Source
+## Building Executables
 
-### Python Executable (Windows)
+**Python** (PyInstaller):
 
 ```bash
 cd python
-pip install pyinstaller
-pyinstaller --onefile --windowed --name "SCPlaytime" --add-data "resources;resources" sc_main.py
+pip install pyinstaller==6.21.0
+pyinstaller --onefile --windowed --name "SCPlaytime" \
+  --add-data "resources:resources" \
+  --hidden-import "PIL._tkinter_finder" \
+  sc_main.py
+# On Windows, use --add-data "resources;resources"
 ```
 
-Output: `dist/SCPlaytime.exe`
+The `--hidden-import "PIL._tkinter_finder"` is required, or the frozen build crashes on startup.
 
-### C# Release Build
+**C#:**
 
 ```bash
 cd csharp
 msbuild StarCitizenPlaytimeCalculator.sln /p:Configuration=Release
 ```
 
-Output: `bin/Release/StarCitizenPlaytimeCalculator.exe`
-
----
-
-## CI/CD
-
-This repository uses GitHub Actions to automatically build releases:
-
-- **On tag push** (`v*`) - Creates a GitHub Release with 3 executables (Python Windows, Python Linux, C# Windows)
-- **On PR** - Validates builds
-
-To create a new release:
-
-```bash
-git tag v4.0
-git push origin v4.0
-```
+Releases are automated: pushing a `v*` tag runs GitHub Actions, which builds all three executables and publishes a GitHub Release. Pull requests are build-validated.
 
 ---
 
 ## Screenshots
 
 <p align="center">
-  <img src="https://github.com/ckuma/scplay/assets/51863237/a9332bc2-0b20-46b7-893b-50551317728f" alt="SCPlay Screenshot" width="600">
+  <img src="docs/screenshot-python.png" alt="Python (ttkbootstrap) UI" width="640"><br>
+  <em>Python — cross-platform, ttkbootstrap dark theme</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshot-csharp.png" alt="C# (WinForms) UI" width="640"><br>
+  <em>C# — Windows, WinForms</em>
 </p>
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
+Issues and pull requests are welcome — fork, branch, commit, and open a PR.
 
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See [`LICENSE.txt`](LICENSE.txt).
 
 ---
 
-## Acknowledgments
-
-- Star Citizen community
-- All contributors
-- [VNGD](https://vngd.net/)
-
----
-
-<p align="center">
-  See you in the 'verse! o7
-</p>
+<p align="center">See you in the 'verse! o7</p>
