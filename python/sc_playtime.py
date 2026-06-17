@@ -9,35 +9,89 @@ import dateutil.parser
 # Compile regular expression for efficiency
 date_pattern = re.compile(r'^<(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}).*')
 
+def _paths_from_rsi_launcher_log():
+    """Star Citizen base install dirs recorded by the RSI Launcher log.
+
+    The launcher (an Electron app) keeps its configured library folder in an
+    encrypted store, but it also writes plaintext lines such as:
+        [Pipeline] Installing Star Citizen LIVE 4.8.1-... at G:\\Games\\StarCitizen (...)
+    This is the only reliable way to locate an install in a custom library
+    folder on an arbitrary drive. Returned paths are verified on disk by the caller.
+    """
+    log_path = os.path.expanduser(r'~\AppData\Roaming\rsilauncher\logs\log.log')
+    if not os.path.exists(log_path):
+        return []
+    try:
+        with open(log_path, encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+    except OSError:
+        return []
+
+    bases, seen = [], set()
+    # Backslashes are JSON-escaped (doubled) in the log; capture a drive path
+    # ending in a "StarCitizen" directory, e.g. G:\\Games\\StarCitizen. The
+    # segment class excludes commas (the log lists paths comma-separated) and
+    # the match is non-greedy so it stops at the first/shallowest StarCitizen.
+    for match in re.finditer(r'[A-Za-z]:(?:\\\\[^\\"(),]+)*?\\\\StarCitizen(?![A-Za-z0-9])', content):
+        base = os.path.normpath(match.group(0).replace('\\\\', '\\'))
+        key = base.lower()
+        if key not in seen:
+            seen.add(key)
+            bases.append(base)
+    return bases
+
 def get_default_paths():
     """Get default Star Citizen installation paths based on OS."""
     system = platform.system()
     paths = {}
 
     if system == 'Windows':
-        # Check common installation drives
-        drives = ['C', 'D', 'E', 'F']
         base_paths = []
 
-        for drive in drives:
-            base_paths.append(rf'{drive}:\Program Files\Roberts Space Industries\StarCitizen')
-            base_paths.append(rf'{drive}:\Roberts Space Industries\StarCitizen')
+        # Scan every fixed drive (not just C-F) for the common install roots.
+        # The launcher always creates "<library folder>\StarCitizen\<ENV>", but
+        # the library folder itself is user-chosen, so cover the usual layouts.
+        common_roots = [
+            r'Program Files\Roberts Space Industries\StarCitizen',
+            r'Roberts Space Industries\StarCitizen',
+            r'Games\Roberts Space Industries\StarCitizen',
+            r'Games\StarCitizen',
+            r'StarCitizen',
+        ]
+        for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            drive = f'{letter}:\\'
+            if os.path.exists(drive):
+                for root in common_roots:
+                    base_paths.append(os.path.join(drive, root))
 
-        # Also check user's AppData
+        # Also check user's AppData.
         base_paths.append(os.path.expanduser(r'~\AppData\Local\Roberts Space Industries\StarCitizen'))
+
+        # Authoritative source for custom library folders (any drive/folder the
+        # user picked in the launcher).
+        base_paths.extend(_paths_from_rsi_launcher_log())
 
         environments = ['LIVE', 'PTU', 'EPTU', 'TECH-PREVIEW']
 
+        seen_bases = set()
         for base in base_paths:
+            base = os.path.normpath(base)
+            base_key = base.lower()
+            if base_key in seen_bases:
+                continue
+            seen_bases.add(base_key)
             for env in environments:
                 path = os.path.join(base, env, 'logbackups')
                 if os.path.exists(path):
                     # Add drive letter to environment name if not on C:
-                    if not base.startswith('C:'):
-                        drive_letter = base[0]
-                        key = f"{env} ({drive_letter}:)"
-                    else:
+                    if base_key.startswith('c:'):
                         key = env
+                    else:
+                        key = f"{env} ({base[0].upper()}:)"
+                    # If two installs collide on the same key, keep both by
+                    # falling back to the full base path as the label.
+                    if key in paths and paths[key] != path:
+                        key = f"{env} ({base})"
                     if key not in paths:  # Don't overwrite if already found
                         paths[key] = path
 
