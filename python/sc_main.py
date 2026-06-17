@@ -84,7 +84,7 @@ class SCPlaytimeCalculator:
         # Version/info
         version_label = ttk.Label(
             header_frame,
-            text="v2.0",
+            text="v4.3",
             font=("Segoe UI", 10),
             bootstyle="secondary"
         )
