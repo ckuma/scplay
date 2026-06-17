@@ -50,7 +50,7 @@ if errorlevel 1 (
 
 :: Install PyInstaller if needed
 echo [INFO] Checking PyInstaller...
-pip install pyinstaller --quiet
+pip install pyinstaller==6.21.0 --quiet
 if errorlevel 1 (
     echo [ERROR] Failed to install PyInstaller
     goto :error
