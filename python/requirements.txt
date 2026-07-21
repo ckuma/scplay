@@ -2,5 +2,5 @@
 # pillow<12.2.0 carries known CVEs (incl. ImageMath.eval RCE CVE-2023-50447,
 # libwebp heap overflow CVE-2023-4863); see CVE audit before bumping.
 python-dateutil==2.9.0.post0
-pillow==12.2.0
+pillow==12.3.0
 ttkbootstrap==1.20.3
