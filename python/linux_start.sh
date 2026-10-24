@@ -52,7 +52,7 @@ check_python() {
         PYTHON_CMD="python"
     else
         print_error "Python is not installed"
-        echo "    Please install Python 3.8 or later:"
+        echo "    Please install Python 3.11 or later:"
         echo "    - Ubuntu/Debian: sudo apt install python3 python3-venv python3-pip"
         echo "    - Fedora: sudo dnf install python3"
         echo "    - macOS: brew install python3"
@@ -64,8 +64,8 @@ check_python() {
     PYTHON_MAJOR=$($PYTHON_CMD -c 'import sys; print(sys.version_info.major)')
     PYTHON_MINOR=$($PYTHON_CMD -c 'import sys; print(sys.version_info.minor)')
 
-    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 8 ]); then
-        print_error "Python 3.8+ required (found $PYTHON_VERSION)"
+    if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
+        print_error "Python 3.11+ required (found $PYTHON_VERSION)"
         exit 1
     fi
 
